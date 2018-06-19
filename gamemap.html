@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MAZE RUN</title>
+<meta charset="utf-8"/>
+</head>
+<style>
+canvas{ background:#000011;display :block;margin:0 auto;}
+#score{
+  color:red;
+  font-style: oblique;
+  font-size: 30px;
+}
+#gameover{
+  font-style: oblique;
+  font-size: 30px;
+  margin: auto;
+  width: 800px;
+  height: 500px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  display: none;
+  background-color: yellow;
+  opacity: .5;
+
+}
+button {
+    background-color: #006b81;
+    border: none;
+    color:white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration:none;
+    display: inline-block;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+</style>
+<body>
+  <div id="INTRO">
+    <div style="text-align:center;background-color:yellow;">
+    <h3>THIS IS A MAZE CREATED BY UR MENTORS TO PUT U IN TROUBLE....SO HAVE FUN...</h3>
+    <div id="score" style="color:red font-size:40px"></div>
+    <div id="gameover">
+<h1>GAMEOVER</h1>
+<h3 id="sc"></h3>
+<button id="Play">PLAY AGAIN?</button>
+    </div>
+  </div>
+</div>
+
+  <canvas id="myCanvas" width=800 px height=500 px></canvas>
+  <script>
+  var canvas=document.getElementById("myCanvas");
+  var ctx=canvas.getContext('2d');
+var bspeed=-2;
+var bwidth=25;
+
+var sheetwidth=520;
+var sheetheight=130;
+
+var x=y=0;
+var srcX;
+var srcY;
+
+var rows=1;
+var cols=4;
+var width=sheetwidth/cols;
+var height=sheetheight/rows;
+
+var mouseX=35;
+var mouseY=250;
+var boyX=35;
+var boyY=250;
+var isgameover=0;
+var bgm=new Audio("manic_duck.wav");
+var final=new Audio("AAAGH1.wav");
+
+var f=0;
+var b=1;
+var xVel=1;
+var yVel=1;
+var speed=3;
+var angle=45;
+
+var score=0;
+
+var canvasPos=getCoord(canvas);
+
+var char=new Image();
+char.src="spritesheet.png";
+var currentFrame=0;
+
+
+function blocks(x,y,height)
+{
+  this.x=x;
+  this.y=y;
+  this.height=height;
+}
+blocks.prototype.draw=function()
+{
+  ctx.beginPath();
+  ctx.rect(this.x,this.y,bwidth,this.height);
+  ctx.fillStyle="green";
+  ctx.fill();
+  ctx.closePath();
+this.x+=bspeed;
+}
+
+blocks.prototype.collision=function()
+{ if(boyY<25)
+  {
+    boyY=25;
+    yVel=0;
+  }
+  if((boyY+50)>475)
+  {
+    boyY=425;
+    yVel=0;
+  }
+  else if(boyX<25)
+  {
+    if((boyX+45)>this.x&&(boyX)<(this.x+bwidth) &&(boyY)<(this.y+this.height)&&(boyY+50)>(this.y))
+    {isgameover=1;}
+    boyX=25;
+    xVel=0;
+  }
+
+
+ if(this.y<=25)
+  {
+  if((boyX+45)>this.x &&(boyX)<(this.x+bwidth) && (boyY)<(this.y+this.height))
+  {
+    boyX=(this.x-45);
+    xVel=0;
+    if(boyX==25)
+      isgameover=1;
+
+  }
+  }
+
+   if((this.y+this.height)>=475)
+  {
+    if((boyX+45)>this.x && (boyX)<(this.x+bwidth) && (boyY+50)>(this.y))
+    {
+      boyX=(this.x-45);
+      xVel=0;
+      if(boyX==25)
+        isgameover=1;
+    }
+  }
+   if(this.y>=25&&(this.y+this.height)<475)
+  {
+    if((boyX+45)>this.x && (boyX)<(this.x+bwidth) && (boyY)<(this.y+this.height)&&(boyY+50)>(this.y))
+    {
+      boyX=(this.x-45);
+      xVel=0;
+      if(boyX==25)
+      isgameover=1;
+    }
+  }
+
+
+}
+blocks.prototype.update=function()
+{
+  if(this.x==150&&isgameover==0)
+  {
+    ++score;
+    document.getElementById("score").innerHTML="Score:"+score;
+  }
+}
+
+blocks.prototype.gameover=function()
+{
+if(isgameover)
+{var points=score;
+  speed=0;
+b=0;
+f=1;
+
+  document.getElementById("gameover").style.display='block';
+  document.getElementById("score").style.display='none';
+  document.getElementById("sc").innerHTML="Score:"+points;
+  //document.getElementById("continue").addEventListener('click',function(){initial();});
+  document.getElementById("Play").addEventListener('click',function(){restart();});
+  if(f)
+  {
+    b=0;
+    bgm.pause();
+    final.play();
+  final.stop();
+  }
+
+  //alert("gameover");
+  //location.reload();
+}
+}
+
+var blo=[];
+ blo[0]=new blocks(canvas.width,random(0,300),random(60,250));
+
+function blockloop()
+{
+  for(var i=0;i<blo.length;i++)
+    {blo[i].draw();
+      blo[i].collision();
+      blo[i].update();
+      blo[i].gameover();
+      if(blo[i].x==600)
+      {
+        var bl=new blocks(canvas.width,random(0,300),random(60,250));
+      blo.push(bl);
+    }
+
+  }
+}
+
+function loop()
+{  ctx.clearRect(0,0,canvas.width,canvas.height);
+draw();
+
+if(b)
+{
+bgm.play();
+}
+else {
+  bgm.stop();
+}
+
+
+
+
+  ctx.beginPath();
+  ctx.rect(0,0,canvas.width,25);
+  ctx.rect(0,0,bwidth,canvas.height);
+  ctx.rect(0,canvas.height-25,canvas.width,bwidth);
+  ctx.fillStyle="green";
+  ctx.fill();
+  ctx.closePath();
+blockloop();
+
+  requestAnimationFrame(loop);
+}
+/*function initial()
+{
+  document.getElementById("gameover").style.display='none';
+  document.getElementById("score").style.display='block';
+  score=0;
+  isgameover=0;
+  speed=3;
+  b=1;
+  f=0;
+  if(b)
+  {
+  bgm.play();
+  }
+  else {
+    bgm.stop();
+  }
+}*/
+function restart()
+{
+  location.reload();
+}
+
+function updateFrame()
+{
+  currentFrame=++currentFrame%cols;
+  srcX=currentFrame*width;
+  srcY=0;
+  ctx.clearRect(boyX,boyY,width,height);
+}
+function follow()
+{
+    var dx=mouseX-boyX;
+  var dy=mouseY-boyY;
+angle=Math.atan2(dy,dx);
+xVel=Math.cos(angle)*speed;
+yVel=Math.sin(angle)*speed;
+boyX+=xVel;
+boyY+=yVel;
+}
+
+function draw()
+{
+updateFrame();
+follow();
+
+ctx.drawImage(char,srcX,srcY,width,height,boyX,boyY,45,45);
+}
+function getCoord(el) {
+  var xPosition = 0;
+  var yPosition = 0;
+
+  while (el) {
+    xPosition += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+    yPosition += (el.offsetTop - el.scrollTop + el.clientTop);
+    el = el.offsetParent;
+  }
+  return {
+    x: xPosition,
+    y: yPosition
+  };
+}
+function mouseHandler(e){
+  mouseX = e.clientX -canvasPos.x ;
+  mouseY  = e.clientY - canvasPos.y;
+}
+canvas.addEventListener("mousemove",mouseHandler, false);
+
+
+function random(min,max)
+{
+  var n;
+  n=Math.floor(Math.random()*(max-min+1))+min;
+  return n;
+}
+loop();
+  </script>
+</body>
+</html>
