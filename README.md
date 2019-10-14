@@ -1,2 +1,3 @@
 # MAZE-RUN
-#MAZE-RUM
+#MAZE-RUN
+
